@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  user
+  admin
+}
+
+enum UdsStatus {
+  available
+  in_use
+  maintenance
+}
+
+model User {
+  id           String   @id @default(cuid())
+  firstName    String
+  lastName     String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(user)
+  createdAt    DateTime @default(now())
+  sessions     Session[]
+  usedUds      Uds[]    @relation("UsedBy")
+}
+
+model Uds {
+  id            String     @id @default(cuid())
+  displayName   String
+  ipAddress     String
+  status        UdsStatus  @default(available)
+  usedByUserId  String?
+  usedBy        User?      @relation("UsedBy", fields: [usedByUserId], references: [id])
+  updatedAt     DateTime   @updatedAt
+  sessions      Session[]
+  notes         String?
+}
+
+model Session {
+  id         String    @id @default(cuid())
+  udsId      String
+  userId     String
+  status     String    // "started" | "ended"
+  startedAt  DateTime  @default(now())
+  endedAt    DateTime?
+  oneTimeKey String?   @unique
+  uds        Uds       @relation(fields: [udsId], references: [id])
+  user       User      @relation(fields: [userId], references: [id])
+}
