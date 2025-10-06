@@ -22,7 +22,7 @@ export async function POST(req: Request) {
   await prisma.$transaction(async (tx) => {
     await tx.session.update({
       where: { id: session.id },
-      data: { status: "ended", endedAt: new Date() },
+      data: { status: "ended", endedAt: new Date(), lastHeartbeatAt: new Date() },
     });
     const uds = await tx.uds.findUnique({ where: { id: session.udsId } });
     if (uds && uds.status === "in_use") {

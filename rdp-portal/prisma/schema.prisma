@@ -50,6 +50,7 @@ model Session {
   startedAt  DateTime  @default(now())
   endedAt    DateTime?
   oneTimeKey String?   @unique
+  lastHeartbeatAt DateTime?
   uds        Uds       @relation(fields: [udsId], references: [id])
   user       User      @relation(fields: [userId], references: [id])
 }

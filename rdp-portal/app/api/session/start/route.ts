@@ -28,6 +28,7 @@ export async function POST(req: Request) {
         userId: data.userId,
         status: "started",
         oneTimeKey,
+        lastHeartbeatAt: new Date(),
       },
     });
   });
