@@ -15,7 +15,7 @@ export async function GET(req: Request) {
   const uds = await prisma.uds.findUnique({ where: { id: udsId } });
   if (!uds) return NextResponse.json({ error: "UDS not found" }, { status: 404 });
 
-  const token = createConnectToken({ udsId, userId: (session.user as any).id ?? "" });
+  const token = createConnectToken({ udsId, userId: (session.user as { id?: string } | undefined)?.id ?? "" });
 
   const startUrl = `${process.env.NEXTAUTH_URL}/api/session/start`;
   const endUrl = `${process.env.NEXTAUTH_URL}/api/session/end`;
@@ -30,6 +30,22 @@ $ErrorActionPreference = 'Stop'
 $sessionToken = $null
 $tempRdp = [System.IO.Path]::GetTempFileName().Replace('.tmp', '.rdp')
  $heartbeatTimer = $null
+ $endedSent = $false
+
+ function Send-End {
+   param([string]$Tok, [string]$Url)
+   if (-not $Tok) { return }
+   if ($script:endedSent) { return }
+   for ($i=0; $i -lt 3; $i++) {
+     try {
+       Invoke-RestMethod -Method Post -Uri $Url -Body @{ sessionToken = $Tok } -ContentType "application/x-www-form-urlencoded" | Out-Null
+       break
+     } catch {
+       Start-Sleep -Milliseconds 500
+     }
+   }
+   $script:endedSent = $true
+ }
 
 try {
   Write-Host "Do not close this window until the remote session ends." -ForegroundColor Yellow
@@ -41,6 +57,9 @@ try {
 
   Set-Content -Path $tempRdp -Value $rdpContent -Encoding ASCII
   $mstsc = Start-Process -FilePath "mstsc.exe" -ArgumentList $tempRdp -PassThru
+  $mstsc.EnableRaisingEvents = $true
+  Register-ObjectEvent -InputObject $mstsc -EventName Exited -Action { Send-End $using:sessionToken "${endUrl}" } | Out-Null
+  Register-EngineEvent PowerShell.Exiting -Action { Send-End $using:sessionToken "${endUrl}" } | Out-Null
   
   # Heartbeat every 60 seconds while mstsc is running
   $heartbeatScript = {
@@ -48,7 +67,7 @@ try {
     try { Invoke-RestMethod -Method Post -Uri $Url -Body (@{ sessionToken = $Token } | ConvertTo-Json) -ContentType "application/json" | Out-Null } catch { }
   }
   $heartbeatTimer = New-Object Timers.Timer
-  $heartbeatTimer.Interval = 60000
+  $heartbeatTimer.Interval = 10000
   $heartbeatTimer.AutoReset = $true
   $heartbeatTimer.add_Elapsed({ $heartbeatScript.Invoke("${heartbeatUrl}", $sessionToken) })
   $heartbeatTimer.Start()
@@ -59,11 +78,7 @@ catch {
 }
 finally {
   if ($heartbeatTimer) { try { $heartbeatTimer.Stop(); $heartbeatTimer.Dispose() } catch { } }
-  if ($sessionToken) {
-    try {
-      Invoke-RestMethod -Method Post -Uri "${endUrl}" -Body @{ sessionToken = $sessionToken } -ContentType "application/x-www-form-urlencoded" | Out-Null
-    } catch { }
-  }
+  Send-End $sessionToken "${endUrl}"
   if (Test-Path $tempRdp) { Remove-Item $tempRdp -Force }
   Write-Host "Remote session ended." -ForegroundColor Green
 }

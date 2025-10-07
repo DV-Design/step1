@@ -29,8 +29,8 @@ export default function AdminUdsPage() {
       }
       const data = await res.json();
       setItems(data);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      setError((e as Error).message);
     } finally {
       setLoading(false);
     }
@@ -54,8 +54,8 @@ export default function AdminUdsPage() {
       setIpAddress("");
       setNotes("");
       await load();
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      setError((e as Error).message);
     }
   }
 

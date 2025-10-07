@@ -1,9 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
+import { signOut } from "next-auth/react";
 import Link from "next/link";
 
+type UdsItem = { id: string; displayName: string; status: "available"|"in_use"|"maintenance"; usedBy?: { firstName: string; lastName: string; email: string } | null };
+
 export default function Dashboard() {
-  const [udsList, setUdsList] = useState<any[]>([]);
+  const [udsList, setUdsList] = useState<UdsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -15,16 +18,17 @@ export default function Dashboard() {
       try {
         const res = await fetch("/api/uds", { cache: "no-store" });
         if (!res.ok) throw new Error(res.status === 401 ? "Please sign in" : "Failed to load UDS");
-        const data = await res.json();
+        const data: UdsItem[] = await res.json();
         if (!cancelled) setUdsList(data);
-      } catch (e: any) {
-        if (!cancelled) setError(e.message);
+      } catch (e) {
+        if (!cancelled) setError((e as Error).message);
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
     load();
-    return () => { cancelled = true; };
+    const id = setInterval(load, 5000);
+    return () => { cancelled = true; clearInterval(id); };
   }, []);
 
   return (
@@ -33,7 +37,7 @@ export default function Dashboard() {
         <h1 className="text-2xl font-semibold">Remote Desktops</h1>
         <div className="flex gap-2">
           <Link href="/admin" className="border rounded px-3 py-2 hover:bg-gray-50">Control Panel</Link>
-          <Link href="/" className="border rounded px-3 py-2 hover:bg-gray-50">Sign out</Link>
+          <button onClick={() => signOut({ callbackUrl: "/login" })} className="border rounded px-3 py-2 hover:bg-gray-50">Sign out</button>
         </div>
       </div>
 
@@ -42,7 +46,7 @@ export default function Dashboard() {
         <div>Loading…</div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {udsList.map((uds: any) => (
+          {udsList.map((uds: UdsItem) => (
             <div key={uds.id} className="rounded border p-4 space-y-2 bg-white">
               <div className="font-medium">{uds.displayName}</div>
               <div className="text-sm">
