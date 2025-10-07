@@ -21,12 +21,21 @@ export async function POST(req: Request) {
 
   const count = await prisma.user.count();
   const passwordHash = await bcrypt.hash(password, 10);
-  const user = await prisma.user.create({
-    data: {
-      firstName, lastName, email, passwordHash,
-      role: count === 0 ? "admin" : "user",
-    },
-  });
+  let user;
+  try {
+    user = await prisma.user.create({
+      data: {
+        firstName, lastName, email, passwordHash,
+        role: count === 0 ? "admin" : "user",
+      },
+    });
+  } catch (e: any) {
+    // Handle race condition for parallel registrations on same email
+    if (e?.code === "P2002") {
+      return NextResponse.json({ error: "Email already registered" }, { status: 400 });
+    }
+    throw e;
+  }
 
   return NextResponse.json({ ok: true, userId: user.id });
 }
