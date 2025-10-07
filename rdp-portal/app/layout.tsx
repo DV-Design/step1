@@ -24,10 +24,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50`}>
+        <div className="min-h-screen">
+          <header className="border-b bg-white/90 backdrop-blur sticky top-0 z-10">
+            <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+              <div className="font-semibold">RDP Portal</div>
+              <nav className="text-sm text-gray-700 flex gap-3">
+                <a href="/dashboard" className="hover:underline">Dashboard</a>
+                <a href="/admin" className="hover:underline">Control Panel</a>
+                <a href="/" className="hover:underline">Sign in</a>
+              </nav>
+            </div>
+          </header>
+          <main className="max-w-6xl mx-auto px-4 py-6">{children}</main>
+        </div>
       </body>
     </html>
   );

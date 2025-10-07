@@ -19,6 +19,7 @@ export async function GET(req: Request) {
 
   const startUrl = `${process.env.NEXTAUTH_URL}/api/session/start`;
   const endUrl = `${process.env.NEXTAUTH_URL}/api/session/end`;
+  const heartbeatUrl = `${process.env.NEXTAUTH_URL}/api/session/heartbeat`;
 
   const ps = `
 param(
@@ -28,6 +29,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $sessionToken = $null
 $tempRdp = [System.IO.Path]::GetTempFileName().Replace('.tmp', '.rdp')
+ $heartbeatTimer = $null
 
 try {
   Write-Host "Do not close this window until the remote session ends." -ForegroundColor Yellow
@@ -39,12 +41,24 @@ try {
 
   Set-Content -Path $tempRdp -Value $rdpContent -Encoding ASCII
   $mstsc = Start-Process -FilePath "mstsc.exe" -ArgumentList $tempRdp -PassThru
+  
+  # Heartbeat every 60 seconds while mstsc is running
+  $heartbeatScript = {
+    Param($Url, $Token)
+    try { Invoke-RestMethod -Method Post -Uri $Url -Body (@{ sessionToken = $Token } | ConvertTo-Json) -ContentType "application/json" | Out-Null } catch { }
+  }
+  $heartbeatTimer = New-Object Timers.Timer
+  $heartbeatTimer.Interval = 60000
+  $heartbeatTimer.AutoReset = $true
+  $heartbeatTimer.add_Elapsed({ $heartbeatScript.Invoke("${heartbeatUrl}", $sessionToken) })
+  $heartbeatTimer.Start()
   Wait-Process -Id $mstsc.Id
 }
 catch {
   Write-Host "An error occurred: $($_.Exception.Message)" -ForegroundColor Red
 }
 finally {
+  if ($heartbeatTimer) { try { $heartbeatTimer.Stop(); $heartbeatTimer.Dispose() } catch { } }
   if ($sessionToken) {
     try {
       Invoke-RestMethod -Method Post -Uri "${endUrl}" -Body @{ sessionToken = $sessionToken } -ContentType "application/x-www-form-urlencoded" | Out-Null

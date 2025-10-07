@@ -67,6 +67,7 @@ export default function AdminUdsPage() {
       body: JSON.stringify(uds),
     });
     if (!res.ok) setError("Failed to update");
+    await load();
   }
 
   async function deleteUds(id: string) {
