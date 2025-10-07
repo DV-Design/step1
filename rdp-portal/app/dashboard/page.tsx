@@ -26,7 +26,8 @@ export default function Dashboard() {
       }
     }
     load();
-    return () => { cancelled = true; };
+    const id = setInterval(load, 5000);
+    return () => { cancelled = true; clearInterval(id); };
   }, []);
 
   return (
