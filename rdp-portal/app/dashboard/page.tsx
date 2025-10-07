@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { signOut } from "next-auth/react";
 import Link from "next/link";
 
 type UdsItem = { id: string; displayName: string; status: "available"|"in_use"|"maintenance"; usedBy?: { firstName: string; lastName: string; email: string } | null };
@@ -36,7 +37,7 @@ export default function Dashboard() {
         <h1 className="text-2xl font-semibold">Remote Desktops</h1>
         <div className="flex gap-2">
           <Link href="/admin" className="border rounded px-3 py-2 hover:bg-gray-50">Control Panel</Link>
-          <Link href="/" className="border rounded px-3 py-2 hover:bg-gray-50">Sign out</Link>
+          <button onClick={() => signOut({ callbackUrl: "/login" })} className="border rounded px-3 py-2 hover:bg-gray-50">Sign out</button>
         </div>
       </div>
 
