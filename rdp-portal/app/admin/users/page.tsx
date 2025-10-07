@@ -17,8 +17,9 @@ export default function AdminUsersPage() {
         if (res.status === 401) throw new Error("Unauthorized (admin only)");
         throw new Error("Failed to load users");
       }
-      setUsers(await res.json());
-    } catch (e: any) { setError(e.message); } finally { setLoading(false); }
+      const data: User[] = await res.json();
+      setUsers(data);
+    } catch (e) { setError((e as Error).message); } finally { setLoading(false); }
   }
 
   useEffect(()=>{ load(); }, []);

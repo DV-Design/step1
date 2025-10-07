@@ -3,8 +3,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
 
-function ensureAdmin(session: any) {
-  if (!session || (session.user as any)?.role !== "admin") {
+function ensureAdmin(session: { user?: { role?: string } } | null) {
+  if (!session || (session.user as { role?: string } | undefined)?.role !== "admin") {
     throw new Error("unauthorized");
   }
 }

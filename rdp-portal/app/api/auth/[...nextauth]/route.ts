@@ -23,21 +23,21 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: `${user.firstName} ${user.lastName}`,
           role: user.role,
-        } as any;
+        } as { id: string; email: string; name: string; role: string };
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = (user as any).role;
-        token.uid = (user as any).id;
+        token.role = (user as { role?: string } | undefined)?.role;
+        token.uid = (user as { id?: string } | undefined)?.id;
       }
       return token;
     },
     async session({ session, token }) {
-      (session.user as any).role = token.role;
-      (session.user as any).id = token.uid;
+      (session.user as { role?: unknown; id?: unknown } | undefined)!.role = token.role as unknown;
+      (session.user as { role?: unknown; id?: unknown } | undefined)!.id = token.uid as unknown;
       return session;
     },
   },

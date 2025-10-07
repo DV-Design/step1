@@ -7,7 +7,7 @@ export async function POST(req: Request) {
   const { token } = await req.json();
   if (!token) return NextResponse.json({ error: "Missing token" }, { status: 400 });
 
-  let data: any;
+  let data: { udsId: string; userId: string };
   try { data = verifyConnectToken(token); } catch { return NextResponse.json({ error: "Invalid token" }, { status: 400 }); }
 
   const uds = await prisma.uds.findUnique({ where: { id: data.udsId } });

@@ -15,7 +15,7 @@ export async function GET(req: Request) {
   const uds = await prisma.uds.findUnique({ where: { id: udsId } });
   if (!uds) return NextResponse.json({ error: "UDS not found" }, { status: 404 });
 
-  const token = createConnectToken({ udsId, userId: (session.user as any).id ?? "" });
+  const token = createConnectToken({ udsId, userId: (session.user as { id?: string } | undefined)?.id ?? "" });
 
   const startUrl = `${process.env.NEXTAUTH_URL}/api/session/start`;
   const endUrl = `${process.env.NEXTAUTH_URL}/api/session/end`;

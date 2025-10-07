@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 export default withAuth({
   pages: { signIn: "/login" },
   callbacks: {
-    authorized: ({ req, token }: { req: NextRequest; token: any }) => {
+    authorized: ({ req, token }: { req: NextRequest; token: { role?: string } | null }) => {
       const { pathname } = req.nextUrl;
       // Allow unauthenticated access to login and registration pages
       if (pathname === "/login" || pathname === "/register" || pathname === "/") {

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Link from "next/link";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -30,9 +31,9 @@ export default function RootLayout({
             <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
               <div className="font-semibold">RDP Portal</div>
               <nav className="text-sm text-gray-700 flex gap-3">
-                <a href="/dashboard" className="hover:underline">Dashboard</a>
-                <a href="/admin" className="hover:underline">Control Panel</a>
-                <a href="/" className="hover:underline">Sign in</a>
+                <Link href="/dashboard" className="hover:underline">Dashboard</Link>
+                <Link href="/admin" className="hover:underline">Control Panel</Link>
+                <Link href="/" className="hover:underline">Sign in</Link>
               </nav>
             </div>
           </header>
