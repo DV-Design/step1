@@ -24,11 +24,7 @@ export default function Dashboard() {
       }
     }
     load();
-    const interval = setInterval(load, 60000); // refresh every 60s
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-    };
+    return () => { cancelled = true; };
   }, []);
 
   return (
