@@ -34,7 +34,7 @@ set "TEMP_RDP=%TEMP%\\rdp-!RANDOM!.rdp"
 set "SESSION_FILE=%TEMP%\\session-!RANDOM!.tok"
 echo Do not close this window until the remote session ends.
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$b=Invoke-RestMethod -Method Post -Uri '%START_URL%' -Body (@{ token='%TOKEN%' } | ConvertTo-Json) -ContentType 'application/json'; $rdp=$b.rdpContent -replace '\`n','\`r\`n'; [System.IO.File]::WriteAllText('%TEMP_RDP%',$rdp,[System.Text.Encoding]::ASCII); [System.IO.File]::WriteAllText('%SESSION_FILE%',$b.sessionToken,[System.Text.Encoding]::ASCII)"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$b=Invoke-RestMethod -Method Post -Uri '%START_URL%' -Body (@{ token='%TOKEN%' } | ConvertTo-Json) -ContentType 'application/json'; $rdp = ($b.rdpContent -split '\\n') -join [Environment]::NewLine; [System.IO.File]::WriteAllText('%TEMP_RDP%',$rdp,[System.Text.Encoding]::Unicode); [System.IO.File]::WriteAllText('%SESSION_FILE%',$b.sessionToken,[System.Text.Encoding]::ASCII)"
 if errorlevel 1 (
   echo Failed to start session.
   exit /b 1
@@ -44,7 +44,7 @@ set /p SESSIONTOKEN=<"%SESSION_FILE%"
 
 rem Start heartbeat in background
 powershell -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command ^
-  "$tok='%SESSIONTOKEN%'; $url='%HEARTBEAT_URL%'; while (Get-Process mstsc -ErrorAction SilentlyContinue) { try { Invoke-RestMethod -Method Post -Uri $url -Body (@{ sessionToken = $tok } | ConvertTo-Json) -ContentType 'application/json' | Out-Null } catch { }; Start-Sleep -Seconds 10 }" 
+  "$tok='%SESSIONTOKEN%'; $hb='%HEARTBEAT_URL%'; $end='%END_URL%'; while (Get-Process -Name 'mstsc' -ErrorAction SilentlyContinue) { try { Invoke-RestMethod -Method Post -Uri $hb -Body (@{ sessionToken = $tok } | ConvertTo-Json) -ContentType 'application/json' | Out-Null } catch { }; Start-Sleep -Seconds 10 }; for ($i=0; $i -lt 3; $i++) { try { Invoke-RestMethod -Method Post -Uri $end -Body @{ sessionToken = $tok } -ContentType 'application/x-www-form-urlencoded' | Out-Null; break } catch { Start-Sleep -Milliseconds 500 } }" 
 
 rem Launch RDP and wait
 start /wait "" mstsc.exe "%TEMP_RDP%"
