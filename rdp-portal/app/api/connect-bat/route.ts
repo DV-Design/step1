@@ -34,10 +34,7 @@ set "TEMP_RDP=%TEMP%\\rdp-!RANDOM!.rdp"
 set "SESSION_FILE=%TEMP%\\session-!RANDOM!.tok"
 echo Do not close this window until the remote session ends.
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-  "$b=Invoke-RestMethod -Method Post -Uri '%START_URL%' -Body (@{ token='%TOKEN%' } | ConvertTo-Json) -ContentType 'application/json';" ^
-  "Set-Content -Path '%TEMP_RDP%' -Value $b.rdpContent -Encoding Ascii;" ^
-  "Set-Content -Path '%SESSION_FILE%' -Value $b.sessionToken -Encoding Ascii"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$b=Invoke-RestMethod -Method Post -Uri '%START_URL%' -Body (@{ token='%TOKEN%' } | ConvertTo-Json) -ContentType 'application/json'; $b.rdpContent | Out-File -FilePath '%TEMP_RDP%' -Encoding Unicode; $b.sessionToken | Out-File -FilePath '%SESSION_FILE%' -Encoding Ascii"
 if errorlevel 1 (
   echo Failed to start session.
   exit /b 1
