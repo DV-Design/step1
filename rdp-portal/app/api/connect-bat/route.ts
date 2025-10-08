@@ -43,7 +43,8 @@ if errorlevel 1 (
 set /p SESSIONTOKEN=<"%SESSION_FILE%"
 
 rem Start heartbeat in background
-start "" cmd /c "%~f0" HB "%SESSIONTOKEN%" "%HEARTBEAT_URL%"
+powershell -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command ^
+  "$tok='%SESSIONTOKEN%'; $url='%HEARTBEAT_URL%'; while (Get-Process mstsc -ErrorAction SilentlyContinue) { try { Invoke-RestMethod -Method Post -Uri $url -Body (@{ sessionToken = $tok } | ConvertTo-Json) -ContentType 'application/json' | Out-Null } catch { }; Start-Sleep -Seconds 10 }" 
 
 rem Launch RDP and wait
 start /wait "" mstsc.exe "%TEMP_RDP%"
@@ -60,18 +61,6 @@ del /q "%SESSION_FILE%" 2>nul
 echo Remote session ended.
 exit /b 0
 
-:HB
-setlocal
-enableextensions
-set "SESSIONTOKEN=%2"
-set "HBU=%3"
-:HB_LOOP
-tasklist /fi "imagename eq mstsc.exe" | find /i "mstsc.exe" >nul || goto HB_END
-curl -s -X POST -H "Content-Type: application/json" -d "{\"sessionToken\":\"%SESSIONTOKEN%\"}" "%HBU%" >nul 2>&1
-timeout /t 10 >nul
-goto HB_LOOP
-:HB_END
-exit /b 0
 `.trim();
 
   return new NextResponse(bat, {
