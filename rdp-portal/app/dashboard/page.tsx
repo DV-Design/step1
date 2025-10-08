@@ -68,6 +68,12 @@ export default function Dashboard() {
                 >
                   Connect (BAT)
                 </a>
+                <a
+                  href={`/api/connect-exe?udsId=${uds.id}`}
+                  className={`inline-flex items-center justify-center px-3 py-2 rounded text-white ${uds.status === "available" ? "bg-purple-600 hover:bg-purple-700" : "bg-gray-400 cursor-not-allowed pointer-events-none"}`}
+                >
+                  Connect (EXE)
+                </a>
               </div>
             </div>
           ))}
