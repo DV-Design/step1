@@ -17,9 +17,11 @@ export async function GET(req: Request) {
 
   const token = createConnectToken({ udsId, userId: (session.user as { id?: string } | undefined)?.id ?? "" });
 
-  const startUrl = `${process.env.NEXTAUTH_URL}/api/session/start`;
-  const endUrl = `${process.env.NEXTAUTH_URL}/api/session/end`;
-  const heartbeatUrl = `${process.env.NEXTAUTH_URL}/api/session/heartbeat`;
+  const { origin } = new URL(req.url);
+  const base = process.env.PUBLIC_BASE_URL || process.env.NEXTAUTH_URL || origin;
+  const startUrl = `${base}/api/session/start`;
+  const endUrl = `${base}/api/session/end`;
+  const heartbeatUrl = `${base}/api/session/heartbeat`;
 
   const bat = `
 @echo off
