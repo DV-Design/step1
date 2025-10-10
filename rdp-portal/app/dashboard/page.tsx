@@ -56,12 +56,22 @@ export default function Dashboard() {
                 )}
               </div>
               <div>
-                <a
-                  href={`rdp-portal://connect?udsId=${uds.id}`}
-                  className={`inline-flex items-center justify-center px-3 py-2 rounded text-white ${uds.status === "available" ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-400 cursor-not-allowed pointer-events-none"}`}
+                <button
+                  onClick={async () => {
+                    try {
+                      const res = await fetch(`/api/connect-token?udsId=${uds.id}`);
+                      if (!res.ok) throw new Error("Failed to get token");
+                      const { token, base } = await res.json();
+                      window.location.href = `rdp-portal://connect?token=${encodeURIComponent(token)}&base=${encodeURIComponent(base)}`;
+                    } catch (e) {
+                      alert("Unable to start connection");
+                    }
+                  }}
+                  className={`inline-flex items-center justify-center px-3 py-2 rounded text-white ${uds.status === "available" ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-400 cursor-not-allowed"}`}
+                  disabled={uds.status !== "available"}
                 >
                   Connect
-                </a>
+                </button>
               </div>
             </div>
           ))}
