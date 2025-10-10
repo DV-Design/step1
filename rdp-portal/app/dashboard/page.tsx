@@ -55,24 +55,12 @@ export default function Dashboard() {
                   <span> — Used by {uds.usedBy.firstName} {uds.usedBy.lastName} ({uds.usedBy.email})</span>
                 )}
               </div>
-              <div className="flex gap-2">
+              <div>
                 <a
-                  href={`/api/connect-script?udsId=${uds.id}`}
+                  href={`rdp-portal://connect?udsId=${uds.id}`}
                   className={`inline-flex items-center justify-center px-3 py-2 rounded text-white ${uds.status === "available" ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-400 cursor-not-allowed pointer-events-none"}`}
                 >
-                  Connect (PS1)
-                </a>
-                <a
-                  href={`/api/connect-bat?udsId=${uds.id}`}
-                  className={`inline-flex items-center justify-center px-3 py-2 rounded text-white ${uds.status === "available" ? "bg-green-600 hover:bg-green-700" : "bg-gray-400 cursor-not-allowed pointer-events-none"}`}
-                >
-                  Connect (BAT)
-                </a>
-                <a
-                  href={`/api/connect-exe?udsId=${uds.id}`}
-                  className={`inline-flex items-center justify-center px-3 py-2 rounded text-white ${uds.status === "available" ? "bg-purple-600 hover:bg-purple-700" : "bg-gray-400 cursor-not-allowed pointer-events-none"}`}
-                >
-                  Connect (EXE)
+                  Connect
                 </a>
               </div>
             </div>

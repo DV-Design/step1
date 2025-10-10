@@ -5,13 +5,12 @@ import { createConnectToken } from "@/lib/rdpTokens";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { searchParams } = new URL(req.url);
   const udsId = searchParams.get("udsId");
   if (!udsId) return NextResponse.json({ error: "Missing udsId" }, { status: 400 });
 
+  const session = await getServerSession(authOptions);
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const uds = await prisma.uds.findUnique({ where: { id: udsId } });
   if (!uds) return NextResponse.json({ error: "UDS not found" }, { status: 404 });
 
